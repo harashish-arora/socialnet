@@ -36,8 +36,8 @@ void printBanner() {
 }
 
 int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
+    // ios::sync_with_stdio(false);
+    // cin.tie(nullptr);
 
     SocialNet sn;
     string line;
@@ -107,7 +107,7 @@ int main() {
                 continue;
             }
             int deg = sn.degreesOfSeparation(u1, u2);
-            cout << GREEN << deg << "\n" << RESET;
+            if (deg != -1) cout << GREEN << deg << "\n" << RESET;
         }
 
         else if (command == "ADD_POST") {

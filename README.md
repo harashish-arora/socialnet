@@ -409,9 +409,6 @@ OUTPUT_POSTS User1 3
 **Thread Safety:**  
 The current implementation is single-threaded and not thread-safe. Concurrent modifications would require synchronization mechanisms.
 
-**Memory Management:**  
-All dynamically allocated memory in AVL tree nodes must be properly freed. Ensure destructors are implemented correctly.
-
 **Scalability Considerations:**  
 - Hash map load factor affects O(1) guarantees
 - AVL tree remains balanced with O(log P) height
