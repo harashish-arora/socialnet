@@ -107,7 +107,7 @@ int main() {
                 continue;
             }
             int deg = sn.degreesOfSeparation(u1, u2);
-            if (deg != -1) cout << GREEN << deg << "\n" << RESET;
+            if (deg != -2) cout << GREEN << deg << "\n" << RESET;
         }
 
         else if (command == "ADD_POST") {

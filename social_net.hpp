@@ -119,7 +119,7 @@ public:
 
         if (!users.count(a) || !users.count(b)) {
             cerr << YELLOW << "Error: One or both users do not exist.\n" << RESET;
-            return -1;
+            return -2;
         }
 
         queue<pair<string, int>> q;
