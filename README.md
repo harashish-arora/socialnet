@@ -1,0 +1,401 @@
+# SocialNet Simulator
+
+## 1. Project Overview
+
+This project implements a command-line social network backend simulator using custom data structures. The system supports user management, mutual friendships, timestamped content posting, friend recommendations based on mutual connections, and shortest-path queries for degrees of separation.
+
+**Core Features:**
+- AVL tree implementation for timestamp-keyed posts enabling O(log n) insertions and efficient retrieval of most recent content
+- Graph-based friendship network using hash containers for O(1) average-case lookups
+- BFS-based shortest-path computation for degrees of separation
+- Mutual-friends algorithm for intelligent friend suggestions
+- Color-coded terminal output for enhanced user experience
+
+**Supported Commands:**  
+`ADD_USER`, `ADD_FRIEND`, `LIST_FRIENDS`, `SUGGEST_FRIENDS`, `ADD_POST`, `OUTPUT_POSTS`, `DEGREES_OF_SEPARATION`, `EXIT`
+
+**Note:** All usernames are canonicalized to lowercase internally, making the interface case-insensitive.
+
+---
+
+## 2. File Structure and Explanations
+
+| File | Purpose |
+|------|---------|
+| `main.cpp` | Command-line shell that reads and parses commands, validates syntax, and dispatches operations to `SocialNet`. Handles colored terminal output and displays startup banner. |
+| `social_net.hpp` | Implements the `SocialNet` class. Manages an `unordered_map<string, User>` for O(1) user lookup and orchestrates friendship operations, friend suggestions, and degrees-of-separation queries. |
+| `user.hpp` | Defines the `User` class, storing lowercase username, an `AVLTree` instance for posts, and an `unordered_set<string>` of friend usernames. |
+| `AVL_tree.hpp` | AVL tree implementation for timestamp-keyed posts. Supports insertion, deletion by timestamp, and reverse in-order traversal for chronologically-ordered post retrieval. |
+| `build.sh` | Shell script to compile the project using g++/clang++. |
+
+---
+
+## 3. Compilation Instructions
+
+Ensure you are in a UNIX or UNIX-like environment (use GitBash or WSL on Windows).
+
+**(One Time) Make the build script executable:**
+```bash
+chmod +x build.sh
+```
+
+**Compile the project:**
+```bash
+./build.sh
+```
+
+**Requirements:**
+- g++ (or clang++) with at least C++11 support
+- Tested on macOS with Apple clang++ version 15.0.0
+
+The script compiles `main.cpp` and produces an executable called `socialnet`.
+
+---
+
+## 4. Running the Program
+
+Execute the compiled binary:
+```bash
+./socialnet
+```
+
+**Input Modes:**
+
+*Interactive mode:*
+```bash
+./socialnet
+ADD_USER Alice
+ADD_FRIEND Alice Bob
+```
+
+*Batch mode with input file:*
+```bash
+./socialnet < testcases.txt
+```
+
+**Output Color Coding:**
+- **Green:** Successful operations and informational messages
+- **Yellow:** Warnings (e.g., duplicate user, non-existent friend)
+- **Red:** Errors (e.g., invalid syntax, unknown command)
+
+---
+
+## 5. Supported Commands and Syntax
+
+### 5.1 Social Network Operations
+
+| Command | Syntax | Description |
+|---------|--------|-------------|
+| `ADD_USER` | `ADD_USER <username>` | Creates a new user with the specified username (converted to lowercase). Initially has no friends or posts. |
+| `ADD_FRIEND` | `ADD_FRIEND <username1> <username2>` | Establishes a bidirectional friendship between two existing users. |
+| `LIST_FRIENDS` | `LIST_FRIENDS <username>` | Prints an alphabetically-sorted list of the specified user's friends. |
+| `SUGGEST_FRIENDS` | `SUGGEST_FRIENDS <username> <N>` | Recommends up to N non-friend users ranked by number of mutual friends (ties broken alphabetically). |
+| `DEGREES_OF_SEPARATION` | `DEGREES_OF_SEPARATION <username1> <username2>` | Computes the shortest friendship path length between two users using BFS. Returns -1 if no path exists. |
+
+### 5.2 User Content Operations
+
+| Command | Syntax | Description |
+|---------|--------|-------------|
+| `ADD_POST` | `ADD_POST <username> "<content>"` | Adds a timestamped post for the specified user. Content is extracted from remainder of line; surrounding quotes are stripped. |
+| `OUTPUT_POSTS` | `OUTPUT_POSTS <username> <N>` | Displays the N most recent posts in reverse chronological order. Use N = -1 to display all posts. |
+
+### 5.3 System Commands
+
+| Command | Description |
+|---------|-------------|
+| `EXIT` | Terminates the simulator. |
+
+---
+
+## 6. Error and Edge Case Handling
+
+The system provides clear, color-coded error messages for all invalid inputs and operations:
+
+**User Management Errors:**
+- Duplicate user addition → Yellow warning: `"User '<username>' already exists"`
+- Non-existent user reference → Yellow/Red: `"User '<username>' not found"`
+- Self-friendship attempt → Yellow warning: `"Cannot add self as friend"`
+
+**Friendship Errors:**
+- Already friends → Yellow warning: `"Users '<u1>' and '<u2>' are already friends"`
+- Missing user in friendship operation → Red error with details
+
+**Content Errors:**
+- Empty post content → Red error: `"Invalid syntax. Post content cannot be empty"`
+- Post to non-existent user → Red error with username
+
+**Query Errors:**
+- Invalid N parameter (non-numeric or inappropriate value) → Red error
+- Degrees of separation with missing user → Red error
+
+**System Errors:**
+- Unknown command → Red error: `"Unknown command: '<command>'"`
+- Insufficient arguments → Red error with usage information
+
+---
+
+## 7. Design Choices and Assumptions
+
+**Username Canonicalization:**  
+All usernames are converted to lowercase at input time and stored in lowercase in `User::username` and the `users` map. This ensures case-insensitive comparisons throughout the system.
+
+**Friendship Storage:**  
+The `unordered_set<string>` data structure stores friend relationships, providing expected O(1) insertion and lookup. Friend lists are sorted only for display purposes.
+
+**Post Timestamping:**  
+Posts are stored in an AVL tree keyed by `time_t` timestamp (obtained via `time(nullptr)` at insertion). This maintains chronological ordering and guarantees O(log P) insertion and O(N) retrieval for the N most recent posts via reverse in-order traversal.
+
+
+**Friend Suggestion Algorithm:**  
+Counts mutual friends by iterating over the target user's friends and aggregating their friends into a frequency map. See Section 8 for complexity analysis and proof sketches.
+
+**Degrees of Separation:**  
+Standard breadth-first search (BFS) on an implicit adjacency list derived from `User::friends`.
+
+---
+
+## 8. Complexity Analysis
+
+### 8.1 Notation
+
+- **U** = number of users (|users|)
+- **F(u)** = number of friends of user u
+- **F** = average/maximum number of friends per user
+- **P(u)** = number of posts by user u
+- **P** = average/maximum number of posts per user
+- **V** = number of vertices in friendship graph = U
+- **E** = number of edges (mutual friendships, counted once)
+
+### 8.2 Operation Complexities
+
+| Operation | Dominant Step | Time Complexity | Proof Sketch |
+|-----------|---------------|-----------------|--------------|
+| `ADD_USER` | Hash map insertion | **O(1)** expected | Hash map insertion averages constant time with good hash distribution. Constructs a `User` and performs `users[name] = u`. |
+| `ADD_FRIEND` | Two set insertions | **O(1)** expected | Each `unordered_set` insertion is O(1) average. Updating both friendship sets requires two constant-time operations. |
+| `LIST_FRIENDS` | Sorting friends | **O(F log F)** | Converts `unordered_set` to `vector` of size F and sorts. Standard sort is O(F log F). |
+| `ADD_POST` | AVL insertion | **O(log P)** worst-case | AVL insertion performs BST insert plus at most O(1) rotations. Tree height is O(log P), so insertion is O(log P). |
+| `OUTPUT_POSTS` | Reverse in-order traversal | **O(N)** | Reverse in-order visits each of the top N nodes exactly once. Linear in N. |
+| `SUGGEST_FRIENDS` | Counting + sorting | **O(F² + C log C)** ≈ **O(F² log F)** worst-case | For user u with F friends, iterate over every friend f and their F(f) friends. Dense case: F(f) ≈ F yields O(F²) counting. Sorting C candidates (C ≤ U) costs O(C log C). Worst-case simplified to O(F² log F). |
+| `DEGREES_OF_SEPARATION` | BFS traversal | **O(V + E)** | Standard BFS visits each vertex once and examines each edge twice (undirected). Total: O(V + E). |
+
+### 8.3 Detailed Proof Sketches
+
+**AVL Insertion (O(log P)):**  
+AVL tree height h satisfies h ≤ 1.44 log₂(P + 2) (standard bound). Traversal to insertion point is O(h), and rebalancing requires at most O(1) rotations per level. Therefore, insertion is O(log P).
+
+**BFS for Degrees of Separation (O(V + E)):**  
+Each vertex is enqueued and dequeued at most once. Each edge is examined at most twice (once from each endpoint in an undirected graph). Total work is Θ(V + E).
+
+**Friend Suggestion (O(F² log F)):**  
+For target user u with F friends, iterate over each friend f and their friend list. If each friend has up to F members, pairwise operations yield O(F²) counting. The candidate vector size C ≤ U; sorting C items requires O(C log C). Combined bound: O(F² + C log C) ≈ O(F² log F) worst-case.
+
+---
+
+## 9. Sample Interaction
+
+**Input:**
+```
+ADD_USER Alice
+ADD_USER Bob
+ADD_USER Charlie
+ADD_FRIEND Alice Bob
+ADD_FRIEND Bob Charlie
+LIST_FRIENDS Bob
+ADD_POST Alice "Hello World from SocialNet"
+OUTPUT_POSTS Alice 1
+SUGGEST_FRIENDS Alice 3
+DEGREES_OF_SEPARATION Alice Charlie
+EXIT
+```
+
+**Expected Output:**
+```
+User alice added successfully.
+User bob added successfully.
+User charlie added successfully.
+Users alice and bob are now friends.
+Users bob and charlie are now friends.
+The friends of bob are the following:
+alice charlie
+Wed Nov  5 14:23:45 2025: Hello World from SocialNet
+Friend suggestions for alice:
+charlie (1 mutual)
+2
+Exiting SocialNet Simulator. Goodbye!
+```
+
+**Notes:**
+- Usernames are canonicalized to lowercase in all output
+- Timestamps are generated by `ctime()` and will vary based on execution time
+- The degree of separation between Alice and Charlie is 2 (Alice → Bob → Charlie)
+
+---
+
+## 10. Comprehensive Test Suite
+
+Create a `testcases.txt` file and execute with input redirection:
+```bash
+./socialnet < testcases.txt
+```
+
+### Phase 1: User and Friendship Management
+
+```
+ADD_USER Alice
+ADD_USER Bob
+ADD_USER Charlie
+ADD_USER Dave
+ADD_USER Eve
+ADD_USER Alice
+ADD_FRIEND Alice Bob
+ADD_FRIEND Alice Charlie
+ADD_FRIEND Bob Charlie
+ADD_FRIEND Eve Bob
+ADD_FRIEND Eve Eve
+ADD_FRIEND Alice NonExistent
+LIST_FRIENDS Alice
+LIST_FRIENDS Bob
+LIST_FRIENDS NonExistent
+```
+
+**Expected Behavior:**
+- First 5 users added successfully
+- Duplicate Alice addition triggers warning
+- Friendships established (Alice-Bob, Alice-Charlie, Bob-Charlie, Eve-Bob)
+- Self-friendship (Eve-Eve) rejected with warning
+- Friendship with non-existent user rejected with error
+- Friend lists displayed alphabetically
+
+---
+
+### Phase 2: Content Management (AVL Tree)
+
+```
+ADD_POST Alice "First post - testing the system"
+ADD_POST Alice "Second post - AVL tree working"
+ADD_POST Alice "Third post - chronological order test"
+ADD_POST Bob "Bob's first post"
+OUTPUT_POSTS Alice 2
+OUTPUT_POSTS Alice -1
+OUTPUT_POSTS Bob 1
+OUTPUT_POSTS NonExistent 1
+ADD_POST Charlie ""
+```
+
+**Expected Behavior:**
+- Posts added with timestamps
+- OUTPUT_POSTS Alice 2 shows two most recent posts in reverse chronological order
+- OUTPUT_POSTS Alice -1 shows all three posts
+- Empty post content rejected with error
+
+---
+
+### Phase 3: Friend Suggestions and Graph Queries
+
+```
+ADD_USER Frank
+ADD_USER Grace
+ADD_FRIEND Bob Dave
+ADD_FRIEND Charlie Dave
+ADD_FRIEND Dave Frank
+ADD_FRIEND Frank Grace
+SUGGEST_FRIENDS Alice 5
+SUGGEST_FRIENDS Dave 3
+SUGGEST_FRIENDS Grace 10
+DEGREES_OF_SEPARATION Alice Dave
+DEGREES_OF_SEPARATION Alice Grace
+DEGREES_OF_SEPARATION Alice Frank
+DEGREES_OF_SEPARATION Eve Grace
+DEGREES_OF_SEPARATION NonExistent Alice
+```
+
+**Expected Behavior:**
+- Extended network: Alice-Bob-Charlie-Dave-Frank-Grace chain with Eve connected to Bob
+- SUGGEST_FRIENDS Alice 5 should suggest Dave (2 mutual: Bob, Charlie) and Eve (1 mutual: Bob)
+- Degrees of separation computed via BFS
+- Alice to Grace should show path length (3 or 4 depending on route)
+- Non-existent user queries trigger errors
+
+---
+
+### Phase 4: Invalid Inputs and Edge Cases
+
+```
+ADD_USER
+ADD_FRIEND Alice
+ADD_FRIEND Alice Alice
+ADD_POST
+ADD_POST Alice
+OUTPUT_POSTS Alice
+SUGGEST_FRIENDS Alice
+DEGREES_OF_SEPARATION Alice
+RANDOM_COMMAND
+UnknownCommand with arguments
+EXIT
+```
+
+**Expected Behavior:**
+- All commands with missing/insufficient arguments trigger usage errors
+- Self-friendship (Alice-Alice) rejected
+- Unknown commands trigger red error messages
+- System exits cleanly on EXIT
+
+---
+
+### Phase 5: Stress Testing (Optional)
+
+```
+ADD_USER User1
+ADD_USER User2
+ADD_USER User3
+ADD_USER User4
+ADD_USER User5
+ADD_USER User6
+ADD_USER User7
+ADD_USER User8
+ADD_USER User9
+ADD_USER User10
+ADD_FRIEND User1 User2
+ADD_FRIEND User1 User3
+ADD_FRIEND User2 User4
+ADD_FRIEND User2 User5
+ADD_FRIEND User3 User6
+ADD_FRIEND User3 User7
+ADD_FRIEND User4 User8
+ADD_FRIEND User5 User9
+ADD_FRIEND User6 User10
+SUGGEST_FRIENDS User1 5
+DEGREES_OF_SEPARATION User1 User10
+ADD_POST User1 "Post 1"
+ADD_POST User1 "Post 2"
+ADD_POST User1 "Post 3"
+ADD_POST User1 "Post 4"
+ADD_POST User1 "Post 5"
+OUTPUT_POSTS User1 3
+```
+
+**Expected Behavior:**
+- Network with 10 users and multiple friendship levels
+- Friend suggestions ranked by mutual connections
+- Shortest path computation across multiple hops
+- Multiple posts stored and retrieved correctly
+
+---
+
+## 11. Troubleshooting
+
+**Compilation errors:**
+- Ensure C++11 or later (`-std=c++11` flag)
+- Check that all `.hpp` files are in the same directory
+
+**Runtime errors:**
+- Verify input file format (one command per line)
+- Check for proper whitespace in commands
+- Ensure usernames don't contain special characters
+
+**Unexpected behavior:**
+- Review color-coded error messages
+- Test with minimal input files to isolate issues
+- Verify AVL tree balance properties if post ordering is incorrect
+
+---
