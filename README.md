@@ -152,6 +152,14 @@ Counts mutual friends by iterating over the target user's friends and aggregatin
 **Degrees of Separation:**  
 Standard breadth-first search (BFS) on an implicit adjacency list derived from `User::friends`.
 
+**Input Assumptions:**  
+- Usernames must be single words without spaces (space-delimited parsing)
+- Post content can contain spaces and is extracted from the remainder of the line
+- Commands are case-sensitive (e.g., `ADD_USER` not `add_user`)
+- Usernames themselves are case-insensitive (Alice = alice = ALICE)
+- Special characters in usernames may cause undefined behavior
+- Commands must be properly formatted with correct number of arguments
+
 ---
 
 ## 8. Complexity Analysis
@@ -392,10 +400,5 @@ OUTPUT_POSTS User1 3
 - Verify input file format (one command per line)
 - Check for proper whitespace in commands
 - Ensure usernames don't contain special characters
-
-**Unexpected behavior:**
-- Review colour-coded error messages
-- Test with minimal input files to isolate issues
-- Verify AVL tree balance properties if post ordering is incorrect
 
 ---
