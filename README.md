@@ -89,7 +89,7 @@ ADD_FRIEND Alice Bob
 | `ADD_USER` | `ADD_USER <username>` | Creates a new user with the specified username (converted to lowercase). Initially has no friends or posts. |
 | `ADD_FRIEND` | `ADD_FRIEND <username1> <username2>` | Establishes a bidirectional friendship between two existing users. |
 | `LIST_FRIENDS` | `LIST_FRIENDS <username>` | Prints an alphabetically-sorted list of the specified user's friends. |
-| `SUGGEST_FRIENDS` | `SUGGEST_FRIENDS <username> <N>` | Recommends up to N non-friend users ranked by number of mutual friends (ties broken alphabetically). |
+| `SUGGEST_FRIENDS` | `SUGGEST_FRIENDS <username> <N>` | Recommends up to N non-friend users ranked by number of mutual friends (ties broken alphabetically). If no number is provided, all friends of friends are suggested, as a design choice.|
 | `DEGREES_OF_SEPARATION` | `DEGREES_OF_SEPARATION <username1> <username2>` | Computes the shortest friendship path length between two users using BFS. Returns -1 if no path exists. |
 
 ### 5.2 User Content Operations
@@ -156,7 +156,7 @@ Posts are stored in an AVL tree keyed by `time_t` timestamp (obtained via `time(
 Posts inserted within the same second will have identical timestamps. The current AVL implementation ignores duplicate keys, meaning second-level collisions result in dropped posts.
 
 **Friend Suggestion Algorithm:**  
-Counts mutual friends by iterating over the target user's friends and aggregating their friends into a frequency map. See Section 8 for complexity analysis and proof sketches.
+Counts mutual friends by iterating over the target user's friends and aggregating their friends into a frequency map. See Section 8 for complexity analysis and proof sketches. If no number is provided, it outputs all possible friend suggestions.
 
 **Degrees of Separation:**  
 Standard breadth-first search (BFS) on an implicit adjacency list derived from `User::friends`.
