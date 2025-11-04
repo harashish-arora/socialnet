@@ -129,14 +129,22 @@ int main() {
         }
 
         else if (command == "OUTPUT_POSTS") {
-            string uname;
-            int N;
-            ss >> uname >> N;
-            if (uname.empty()) {
-                cerr << RED << "Error: Username not provided.\n" << RESET;
+            string uname, Nstr;
+            ss >> uname >> Nstr;
+            if (uname.empty() || Nstr.empty()) {
+                cerr << RED << "Error: OUTPUT_POSTS requires a username and N (use -1 for all).\n" << RESET;
                 continue;
             }
-            sn.outputPosts(uname, N);
+            // Validate N is an integer
+            try {
+                size_t idx = 0;
+                int N = stoi(Nstr, &idx);
+                if (idx != Nstr.size()) throw invalid_argument("trailing");
+                sn.outputPosts(uname, N);
+            } catch (exception &e) {
+                cerr << RED << "Error: N must be an integer (use -1 for all).\n" << RESET;
+                continue;
+            }
         }
 
         else {

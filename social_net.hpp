@@ -102,7 +102,15 @@ public:
             cerr << YELLOW << "User " << toLower(uname) << " does not exist.\n" << RESET;
             return;
         }
-        users[name].posts.outputPosts(N);
+            if (N < -1) {
+                cerr << YELLOW << "Invalid N: " << N << ". N must be -1 or non-negative.\n" << RESET;
+                return;
+            }
+            if (!users[name].posts.hasPosts()) {
+                cerr << YELLOW << "User " << toLower(uname) << " has no posts.\n" << RESET;
+                return;
+            }
+            users[name].posts.outputPosts(N);
     }
 
     int degreesOfSeparation(const string &u1, const string &u2) {

@@ -99,6 +99,13 @@ ADD_FRIEND Alice Bob
 | `ADD_POST` | `ADD_POST <username> "<content>"` | Adds a timestamped post for the specified user. Content is extracted from remainder of line; surrounding quotes are stripped. |
 | `OUTPUT_POSTS` | `OUTPUT_POSTS <username> <N>` | Displays the N most recent posts in reverse chronological order. Use N = -1 to display all posts. |
 
+Important notes for `OUTPUT_POSTS`:
+
+- The command requires two arguments after the keyword: a username and an integer N. The CLI rejects calls that omit N (syntax error).
+- N must be an integer; non-numeric values (for example `two`) are rejected with an error.
+- N must be either -1 (print all) or a non-negative integer. Values less than -1 (e.g., -2) are rejected and reported as invalid.
+- If the user exists but has no posts, the simulator prints a warning indicating that the user has no posts rather than silently printing nothing.
+
 ### 5.3 System Commands
 
 | Command | Description |
@@ -123,6 +130,12 @@ The system provides clear, color-coded error messages for all invalid inputs and
 **Content Errors:**
 - Empty post content → Red error: `"Invalid syntax. Post content cannot be empty"`
 - Post to non-existent user → Red error with username
+
+**Output/Post Query Errors (OUTPUT_POSTS):**
+- Missing N argument (e.g. `OUTPUT_POSTS alice`) → Red error: usage message requiring both username and N.
+- Non-integer N (e.g. `OUTPUT_POSTS alice two`) → Red error: N must be an integer.
+- N < -1 (e.g. `OUTPUT_POSTS alice -2`) → Yellow warning: invalid N; must be -1 or non-negative.
+- User has no posts → Yellow warning: `User <name> has no posts.`
 
 **Query Errors:**
 - Invalid N parameter (non-numeric or inappropriate value) → Red error
@@ -349,6 +362,10 @@ ADD_FRIEND Alice Alice
 ADD_POST
 ADD_POST Alice
 OUTPUT_POSTS Alice
+OUTPUT_POSTS Alice two
+OUTPUT_POSTS Alice -2
+ADD_USER NoPostsUser
+OUTPUT_POSTS NoPostsUser 1
 SUGGEST_FRIENDS Alice
 DEGREES_OF_SEPARATION Alice
 RANDOM_COMMAND

@@ -193,6 +193,11 @@ public:
 
     ~AVLTree() { deleteTree(root); }
 
+    // Return true if the tree contains at least one post
+    bool hasPosts() const {
+        return root != nullptr; 
+    }
+
     void insert(const string& content) {
         time_t now = time(nullptr);
         root = insertHelper(root, now, content);
