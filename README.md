@@ -9,7 +9,7 @@ This project implements a command-line social network backend simulator using cu
 - Graph-based friendship network using hash containers for O(1) average-case lookups
 - BFS-based shortest-path computation for degrees of separation
 - Mutual-friends algorithm for intelligent friend suggestions
-- colour-coded terminal output for enhanced user experience
+- Color-coded terminal output for enhanced user experience
 
 **Supported Commands:**  
 `ADD_USER`, `ADD_FRIEND`, `LIST_FRIENDS`, `SUGGEST_FRIENDS`, `ADD_POST`, `OUTPUT_POSTS`, `DEGREES_OF_SEPARATION`, `EXIT`
@@ -22,7 +22,7 @@ This project implements a command-line social network backend simulator using cu
 
 | File | Purpose |
 |------|---------|
-| `main.cpp` | Command-line shell that reads and parses commands, validates syntax, and dispatches operations to `SocialNet`. Handles coloured terminal output and displays startup banner. |
+| `main.cpp` | Command-line shell that reads and parses commands, validates syntax, and dispatches operations to `SocialNet`. Handles colored terminal output and displays startup banner. |
 | `social_net.hpp` | Implements the `SocialNet` class. Manages an `unordered_map<string, User>` for O(1) user lookup and orchestrates friendship operations, friend suggestions, and degrees-of-separation queries. |
 | `user.hpp` | Defines the `User` class, storing lowercase username, an `AVLTree` instance for posts, and an `unordered_set<string>` of friend usernames. |
 | `AVL_tree.hpp` | AVL tree implementation for timestamp-keyed posts. Supports insertion, deletion by timestamp, and reverse in-order traversal for chronologically-ordered post retrieval. |
@@ -73,7 +73,7 @@ ADD_FRIEND Alice Bob
 ./socialnet < testcases.txt
 ```
 
-**Output colour Coding:**
+**Output Color Coding:**
 - **Green:** Successful operations and informational messages
 - **Yellow:** Warnings (e.g., duplicate user, non-existent friend)
 - **Red:** Errors (e.g., invalid syntax, unknown command)
@@ -109,7 +109,7 @@ ADD_FRIEND Alice Bob
 
 ## 6. Error and Edge Case Handling
 
-The system provides clear, colour-coded error messages for all invalid inputs and operations:
+The system provides clear, color-coded error messages for all invalid inputs and operations:
 
 **User Management Errors:**
 - Duplicate user addition → Yellow warning: `"User '<username>' already exists"`
@@ -145,6 +145,8 @@ The `unordered_set<string>` data structure stores friend relationships, providin
 **Post Timestamping:**  
 Posts are stored in an AVL tree keyed by `time_t` timestamp (obtained via `time(nullptr)` at insertion). This maintains chronological ordering and guarantees O(log P) insertion and O(N) retrieval for the N most recent posts via reverse in-order traversal.
 
+**Known Limitation:**  
+Posts inserted within the same second will have identical timestamps. The current AVL implementation ignores duplicate keys, meaning second-level collisions result in dropped posts. For production use, consider higher-resolution timestamps (e.g., `std::chrono::system_clock::now()` with nanoseconds) or composite keys (timestamp + monotonic ID).
 
 **Friend Suggestion Algorithm:**  
 Counts mutual friends by iterating over the target user's friends and aggregating their friends into a frequency map. See Section 8 for complexity analysis and proof sketches.
@@ -153,12 +155,23 @@ Counts mutual friends by iterating over the target user's friends and aggregatin
 Standard breadth-first search (BFS) on an implicit adjacency list derived from `User::friends`.
 
 **Input Assumptions:**  
-- Usernames must be single words without spaces (space-delimited parsing)
-- Post content can contain spaces and is extracted from the remainder of the line
-- Commands are case-sensitive (e.g., `ADD_USER` not `add_user`)
-- Usernames themselves are case-insensitive (Alice = alice = ALICE)
-- Special characters in usernames may cause undefined behavior
-- Commands must be properly formatted with correct number of arguments
+The following assumptions are made about input format and behavior (as recommended by course staff):
+
+- **Usernames:** Must be single words without spaces. Space-delimited parsing is used, so `ADD_USER John Doe` would be interpreted as invalid input.
+- **Post content:** Can contain spaces. Content is extracted from the remainder of the line after the username.
+- **Command syntax:** Commands are case-sensitive and must be uppercase (e.g., `ADD_USER` not `add_user` or `Add_User`).
+- **Username case-insensitivity:** Usernames are case-insensitive. `Alice`, `alice`, and `ALICE` refer to the same user.
+- **Post content case:** Preserved exactly as entered. Posts are not converted to lowercase.
+- **Duplicate posts:** Allowed. The same content can be posted multiple times.
+- **Timestamp collisions:** Posts created within the same second have identical timestamps. Due to AVL tree duplicate key handling, only the first post in that second is stored. For production use, higher-resolution timestamps would be needed.
+- **Empty results:** `LIST_FRIENDS` for a user with no friends prints the header but no names. `SUGGEST_FRIENDS` with no candidates prints a warning message.
+- **N=0 in SUGGEST_FRIENDS:** Outputs nothing (no suggestions displayed).
+- **Quotes in ADD_POST:** Input will not contain surrounding quotes per course staff clarification. The code defensively strips quotes if present.
+- **Special characters:** Usernames should contain only alphanumeric characters. Special characters may cause undefined behavior.
+- **Input validation:** Basic validation is performed (missing arguments trigger errors). The system assumes otherwise well-formed input.
+- **Repeated operations:** Duplicate `ADD_USER` warns that username exists. Repeated `ADD_FRIEND` for same pair warns they are already friends.
+- **Self-friendship:** Attempting `ADD_FRIEND Alice Alice` is rejected with a warning.
+- **Non-existent users:** Operations on non-existent users produce appropriate error messages.
 
 ---
 
@@ -390,7 +403,28 @@ OUTPUT_POSTS User1 3
 
 ---
 
-## 11. Troubleshooting
+## 11. Implementation Notes
+
+**Thread Safety:**  
+The current implementation is single-threaded and not thread-safe. Concurrent modifications would require synchronization mechanisms.
+
+**Memory Management:**  
+All dynamically allocated memory in AVL tree nodes must be properly freed. Ensure destructors are implemented correctly.
+
+**Scalability Considerations:**  
+- Hash map load factor affects O(1) guarantees
+- AVL tree remains balanced with O(log P) height
+- BFS performance degrades in dense graphs (E approaches V²)
+
+**Future Enhancements:**
+- Higher-resolution timestamps for post collision avoidance
+- Persistent storage (file I/O or database integration)
+- Privacy controls and friend request system
+- Content filtering and moderation tools
+
+---
+
+## 12. Troubleshooting
 
 **Compilation errors:**
 - Ensure C++11 or later (`-std=c++11` flag)
@@ -400,5 +434,3 @@ OUTPUT_POSTS User1 3
 - Verify input file format (one command per line)
 - Check for proper whitespace in commands
 - Ensure usernames don't contain special characters
-
----
