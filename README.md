@@ -146,7 +146,7 @@ The `unordered_set<string>` data structure stores friend relationships, providin
 Posts are stored in an AVL tree keyed by `time_t` timestamp (obtained via `time(nullptr)` at insertion). This maintains chronological ordering and guarantees O(log P) insertion and O(N) retrieval for the N most recent posts via reverse in-order traversal.
 
 **Known Limitation:**  
-Posts inserted within the same second will have identical timestamps. The current AVL implementation ignores duplicate keys, meaning second-level collisions result in dropped posts. For production use, consider higher-resolution timestamps (e.g., `std::chrono::system_clock::now()` with nanoseconds) or composite keys (timestamp + monotonic ID).
+Posts inserted within the same second will have identical timestamps. The current AVL implementation ignores duplicate keys, meaning second-level collisions result in dropped posts.
 
 **Friend Suggestion Algorithm:**  
 Counts mutual friends by iterating over the target user's friends and aggregating their friends into a frequency map. See Section 8 for complexity analysis and proof sketches.
