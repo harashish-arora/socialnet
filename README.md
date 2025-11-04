@@ -9,7 +9,7 @@ This project implements a command-line social network backend simulator using cu
 - Graph-based friendship network using hash containers for O(1) average-case lookups
 - BFS-based shortest-path computation for degrees of separation
 - Mutual-friends algorithm for intelligent friend suggestions
-- Color-coded terminal output for enhanced user experience
+- colour-coded terminal output for enhanced user experience
 
 **Supported Commands:**  
 `ADD_USER`, `ADD_FRIEND`, `LIST_FRIENDS`, `SUGGEST_FRIENDS`, `ADD_POST`, `OUTPUT_POSTS`, `DEGREES_OF_SEPARATION`, `EXIT`
@@ -22,7 +22,7 @@ This project implements a command-line social network backend simulator using cu
 
 | File | Purpose |
 |------|---------|
-| `main.cpp` | Command-line shell that reads and parses commands, validates syntax, and dispatches operations to `SocialNet`. Handles colored terminal output and displays startup banner. |
+| `main.cpp` | Command-line shell that reads and parses commands, validates syntax, and dispatches operations to `SocialNet`. Handles coloured terminal output and displays startup banner. |
 | `social_net.hpp` | Implements the `SocialNet` class. Manages an `unordered_map<string, User>` for O(1) user lookup and orchestrates friendship operations, friend suggestions, and degrees-of-separation queries. |
 | `user.hpp` | Defines the `User` class, storing lowercase username, an `AVLTree` instance for posts, and an `unordered_set<string>` of friend usernames. |
 | `AVL_tree.hpp` | AVL tree implementation for timestamp-keyed posts. Supports insertion, deletion by timestamp, and reverse in-order traversal for chronologically-ordered post retrieval. |
@@ -73,7 +73,7 @@ ADD_FRIEND Alice Bob
 ./socialnet < testcases.txt
 ```
 
-**Output Color Coding:**
+**Output colour Coding:**
 - **Green:** Successful operations and informational messages
 - **Yellow:** Warnings (e.g., duplicate user, non-existent friend)
 - **Red:** Errors (e.g., invalid syntax, unknown command)
@@ -109,7 +109,7 @@ ADD_FRIEND Alice Bob
 
 ## 6. Error and Edge Case Handling
 
-The system provides clear, color-coded error messages for all invalid inputs and operations:
+The system provides clear, colour-coded error messages for all invalid inputs and operations:
 
 **User Management Errors:**
 - Duplicate user addition → Yellow warning: `"User '<username>' already exists"`
@@ -394,7 +394,7 @@ OUTPUT_POSTS User1 3
 - Ensure usernames don't contain special characters
 
 **Unexpected behavior:**
-- Review color-coded error messages
+- Review colour-coded error messages
 - Test with minimal input files to isolate issues
 - Verify AVL tree balance properties if post ordering is incorrect
 
