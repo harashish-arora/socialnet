@@ -25,7 +25,7 @@ This project implements a command-line social network backend simulator using cu
 | `main.cpp` | Command-line shell that reads and parses commands, validates syntax, and dispatches operations to `SocialNet`. Handles colored terminal output and displays startup banner. |
 | `social_net.hpp` | Implements the `SocialNet` class. Manages an `unordered_map<string, User>` for O(1) user lookup and orchestrates friendship operations, friend suggestions, and degrees-of-separation queries. |
 | `user.hpp` | Defines the `User` class, storing lowercase username, an `AVLTree` instance for posts, and an `unordered_set<string>` of friend usernames. |
-| `AVL_tree.hpp` | AVL tree implementation for timestamp-keyed posts. Supports insertion, deletion by timestamp, and reverse in-order traversal for chronologically-ordered post retrieval. |
+| `AVL_tree.hpp` | AVL tree implementation for order-keyed posts, supporting posts with time. Supports insertion, deletion by order of post, and reverse in-order traversal for chronologically-ordered post retrieval. |
 | `build.sh` | Shell script to compile the project using g++/clang++. |
 
 ---
@@ -96,7 +96,7 @@ ADD_FRIEND Alice Bob
 
 | Command | Syntax | Description |
 |---------|--------|-------------|
-| `ADD_POST` | `ADD_POST <username> "<content>"` | Adds a timestamped post for the specified user. Content is extracted from remainder of line; surrounding quotes are stripped. |
+| `ADD_POST` | `ADD_POST <username> "<content>"` | Adds a timestamped post for the specified user. Content is extracted from remainder of line; surrounding quotes are stripped. Post is keyed by the order of the post in which it is entered. |
 | `OUTPUT_POSTS` | `OUTPUT_POSTS <username> <N>` | Displays the N most recent posts in reverse chronological order. Use N = -1 to display all posts. |
 
 
@@ -150,10 +150,7 @@ All usernames are converted to lowercase at input time and stored in lowercase i
 The `unordered_set<string>` data structure stores friend relationships, providing expected O(1) insertion and lookup. Friend lists are sorted only for display purposes.
 
 **Post Timestamping:**  
-Posts are stored in an AVL tree keyed by `time_t` timestamp (obtained via `time(nullptr)` at insertion). This maintains chronological ordering and guarantees O(log P) insertion and O(N) retrieval for the N most recent posts via reverse in-order traversal.
-
-**Known Limitation:**  
-Posts inserted within the same second will have identical timestamps. The current AVL implementation ignores duplicate keys, meaning second-level collisions result in dropped posts.
+Posts are stored in an AVL tree keyed by the order the posts are inserted. They also include the `time_t` timestamp (obtained via `time(nullptr)` at insertion). This maintains chronological ordering and guarantees O(log P) insertion and O(N) retrieval for the N most recent posts via reverse in-order traversal.
 
 **Friend Suggestion Algorithm:**  
 Counts mutual friends by iterating over the target user's friends and aggregating their friends into a frequency map. See Section 8 for complexity analysis and proof sketches. If no number is provided, it outputs all possible friend suggestions.
