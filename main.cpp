@@ -5,7 +5,6 @@
 
 using namespace std;
 
-// Color codes
 #define RESET "\033[0m"
 #define RED "\033[31m"
 #define GREEN "\033[32m"
@@ -36,8 +35,6 @@ void printBanner() {
 }
 
 int main() {
-    // ios::sync_with_stdio(false);
-    // cin.tie(nullptr);
 
     SocialNet sn;
     string line;
@@ -99,7 +96,7 @@ int main() {
             
             // If N is not provided, suggest all friends
             if (Nstr.empty()) {
-                sn.suggestFriends(uname, -1); // -1 means all
+                sn.suggestFriends(uname, -1);
                 continue;
             }
             
@@ -139,8 +136,6 @@ int main() {
             string content;
             getline(ss, content);
             if (!content.empty() && content[0] == ' ') content.erase(0, 1);
-
-            // Remove quotes around post content (defensive - input may or may not have them)
             if (!content.empty() && content.front() == '"') content.erase(0, 1);
             if (!content.empty() && content.back() == '"') content.pop_back();
 
@@ -158,7 +153,7 @@ int main() {
                 cerr << RED << "Error: OUTPUT_POSTS requires a username and N (use -1 for all).\n" << RESET;
                 continue;
             }
-            // Validate N is an integer
+
             try {
                 size_t idx = 0;
                 int N = stoi(Nstr, &idx);

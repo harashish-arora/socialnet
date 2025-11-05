@@ -165,13 +165,10 @@ public:
             }
         }
 
-        // Convert to sortable vector
         vector<pair<string, int>> candidates(mutuals.begin(), mutuals.end());
 
-        // Sort by number of mutual friends (descending), then alphabetically
         sort(candidates.begin(), candidates.end(), compareCandidates);
 
-        // Output
         if (candidates.empty()) {
             cerr << YELLOW << "No friend suggestions available for " << toLower(uname) << ".\n" << RESET;
             return;
@@ -181,7 +178,6 @@ public:
 
         cout << GREEN << "Friend suggestions for " << toLower(uname) << ":\n" << RESET;
 
-        // N == -1 means all suggestions, otherwise limit to N
         size_t limit = (N == -1) ? candidates.size() : (size_t)N;
         size_t count = 0;
         for (auto &p : candidates) {

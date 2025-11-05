@@ -514,3 +514,9 @@ The current implementation is single-threaded and not thread-safe. Concurrent mo
 - Verify input file format (one command per line)
 - Check for proper whitespace in commands
 - Ensure usernames don't contain special characters
+
+---
+
+## 13. Acknowledgements & Disclaimer
+
+This repository has been reviewed and refined with the assistance of AI tools to improve documentation, input validation, and minor code behaviors. While edits have been compiled and smoke-tested locally.
