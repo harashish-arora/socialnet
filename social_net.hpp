@@ -176,15 +176,21 @@ public:
             cerr << YELLOW << "No friend suggestions available for " << toLower(uname) << ".\n" << RESET;
             return;
         }
-        if (N != 0) {
-            cout << GREEN << "Friend suggestions for " << toLower(uname) << ":\n";
-            int count = 0;
-            for (auto &p : candidates) {
-                if (count == N) break;
-                cout << GREEN << p.first << " (" << p.second << " mutuals)\n" << RESET;
-                count++;
-            }
-        }   
+
+        if (N == 0) return;
+
+        cout << GREEN << "Friend suggestions for " << toLower(uname) << ":\n" << RESET;
+
+        // N == -1 means all suggestions, otherwise limit to N
+        size_t limit = (N == -1) ? candidates.size() : (size_t)N;
+        size_t count = 0;
+        for (auto &p : candidates) {
+            if (count == limit) break;
+            cout << GREEN << p.first << " (" << p.second << " mutual";
+            if (p.second != 1) cout << "s";
+            cout << ")\n" << RESET;
+            count++;
+        }
     }
 };
 

@@ -88,15 +88,38 @@ int main() {
             sn.listFriends(uname);
         }
 
+        
         else if (command == "SUGGEST_FRIENDS") {
-            string uname;
-            int N;
-            ss >> uname >> N;
+            string uname, Nstr;
+            ss >> uname >> Nstr;
             if (uname.empty()) {
-                cerr << RED << "Error: Username not provided.\n" << RESET;
+                cerr << RED << "Error: SUGGEST_FRIENDS requires a username (leave N empty for all).\n" << RESET;
                 continue;
             }
-            sn.suggestFriends(uname, N);
+            
+            // If N is not provided, suggest all friends
+            if (Nstr.empty()) {
+                sn.suggestFriends(uname, -1); // -1 means all
+                continue;
+            }
+            
+            // Validate N is an integer
+            try {
+                size_t idx = 0;
+                int N = stoi(Nstr, &idx);
+                if (idx != Nstr.size()) {
+                    cerr << RED << "Error: N must be an integer.\n" << RESET;
+                    continue;
+                }
+                if (N < 0) {
+                    cerr << YELLOW << "Invalid N: " << N << ". N must be non-negative (use 0 to show none).\n" << RESET;
+                    continue;
+                }
+                sn.suggestFriends(uname, N);
+            } catch (exception &e) {
+                cerr << RED << "Error: N must be a valid integer.\n" << RESET;
+                continue;
+            }
         }
 
         else if (command == "DEGREES_OF_SEPARATION") {

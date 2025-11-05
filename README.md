@@ -89,7 +89,7 @@ ADD_FRIEND Alice Bob
 | `ADD_USER` | `ADD_USER <username>` | Creates a new user with the specified username (converted to lowercase). Initially has no friends or posts. |
 | `ADD_FRIEND` | `ADD_FRIEND <username1> <username2>` | Establishes a bidirectional friendship between two existing users. |
 | `LIST_FRIENDS` | `LIST_FRIENDS <username>` | Prints an alphabetically-sorted list of the specified user's friends. |
-| `SUGGEST_FRIENDS` | `SUGGEST_FRIENDS <username> <N>` | Recommends up to N non-friend users ranked by number of mutual friends (ties broken alphabetically). If no number is provided, all friends of friends are suggested, as a design choice.|
+| `SUGGEST_FRIENDS` | `SUGGEST_FRIENDS <username> [N]` | Recommends up to N non-friend users ranked by number of mutual friends (ties broken alphabetically). If N is omitted, all friend suggestions are shown. N must be a non-negative integer (use N=0 to show none).|
 | `DEGREES_OF_SEPARATION` | `DEGREES_OF_SEPARATION <username1> <username2>` | Computes the shortest friendship path length between two users using BFS. Returns -1 if no path exists. |
 
 ### 5.2 User Content Operations
