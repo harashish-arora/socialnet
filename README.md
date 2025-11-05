@@ -519,4 +519,4 @@ The current implementation is single-threaded and not thread-safe. Concurrent mo
 
 ## 13. Acknowledgements & Disclaimer
 
-This repository has been reviewed and refined with the assistance of AI tools to improve documentation, input validation, and minor code behaviors. While edits have been compiled and smoke-tested locally.
+This repository has been reviewed and refined with the assistance of AI tools to improve documentation, input validation, and minor code behaviors. Edits have been compiled and smoke-tested locally.
