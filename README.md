@@ -89,7 +89,7 @@ ADD_FRIEND Alice Bob
 | `ADD_USER` | `ADD_USER <username>` | Creates a new user with the specified username (converted to lowercase). Initially has no friends or posts. |
 | `ADD_FRIEND` | `ADD_FRIEND <username1> <username2>` | Establishes a bidirectional friendship between two existing users. |
 | `LIST_FRIENDS` | `LIST_FRIENDS <username>` | Prints an alphabetically-sorted list of the specified user's friends. |
-| `SUGGEST_FRIENDS` | `SUGGEST_FRIENDS <username> [N]` | Recommends up to N non-friend users ranked by number of mutual friends (ties broken alphabetically). If N is omitted, all friend suggestions are shown. N must be a non-negative integer (use N=0 to show none).|
+| `SUGGEST_FRIENDS` | `SUGGEST_FRIENDS <username> [N]` | Recommends up to N non-friend users ranked by number of mutual friends (ties broken alphabetically). If N is omitted, all friend suggestions are shown. N must be -1 (for all) or a non-negative integer.|
 | `DEGREES_OF_SEPARATION` | `DEGREES_OF_SEPARATION <username1> <username2>` | Computes the shortest friendship path length between two users using BFS. Returns -1 if no path exists. |
 
 ### 5.2 User Content Operations
@@ -131,9 +131,16 @@ The system provides clear, color-coded error messages for all invalid inputs and
 - N < -1 (e.g. `OUTPUT_POSTS alice -2`) → Yellow warning: invalid N; must be -1 or non-negative.
 - User has no posts → Yellow warning: `User <name> has no posts.`
 
-**Query Errors:**
-- Invalid N parameter (non-numeric or inappropriate value) → Red error
-- Degrees of separation with missing user → Red error
+**Query Errors (SUGGEST_FRIENDS):**
+- Missing N parameter (e.g., `SUGGEST_FRIENDS Alice`) → Treated as request for all suggestions (N=-1 default).
+- Non-integer N (e.g., `SUGGEST_FRIENDS Alice abc`) → Red error: N must be a valid integer.
+- N < -1 (e.g., `SUGGEST_FRIENDS Alice -2`, `SUGGEST_FRIENDS Alice -5`) → Yellow warning: N must be -1 (for all) or non-negative.
+- User has no potential friend suggestions → Yellow warning: `No friend suggestions available for <username>.`
+
+**Query Errors (DEGREES_OF_SEPARATION):**
+- Missing username argument → Red error: Two usernames required.
+- One or both users do not exist → Yellow warning: One or both users do not exist.
+- No path exists between users → Returns -1.
 
 **System Errors:**
 - Unknown command → Red error: `"Unknown command: '<command>'"`
@@ -169,7 +176,13 @@ The following assumptions are made about input format and behavior (as recommend
 - **Duplicate posts:** Allowed. The same content can be posted multiple times.
 - **Timestamp collisions:** Posts created within the same second have identical timestamps. Due to AVL tree duplicate key handling, only the first post in that second is stored. For production use, higher-resolution timestamps would be needed.
 - **Empty results:** `LIST_FRIENDS` for a user with no friends prints the header but no names. `SUGGEST_FRIENDS` with no candidates prints a warning message.
-- **N=0 in SUGGEST_FRIENDS:** Outputs nothing (no suggestions displayed).
+- **N parameter in SUGGEST_FRIENDS:**
+  - If N is omitted (e.g., `SUGGEST_FRIENDS Alice`), all friend suggestions are displayed (treated as N=-1 internally).
+  - N must be -1 (for all suggestions) or a non-negative integer (0, 1, 2, ...). 
+  - Negative values less than -1 (e.g., `-2`, `-5`, `-100`) trigger a yellow warning: "N must be -1 (for all) or non-negative."
+  - Non-integer values (e.g., `abc`, `3.14`, `two`) trigger a red error: "N must be a valid integer."
+  - N=0 displays no suggestions (outputs nothing, returns silently by design).
+  - If there are fewer candidates than N, all available candidates are shown.
 - **Quotes in ADD_POST:** Input will not contain surrounding quotes per course staff clarification. The code defensively strips quotes if present.
 - **Special characters:** Usernames should contain only alphanumeric characters. Special characters may cause undefined behavior.
 - **Input validation:** Basic validation is performed (missing arguments trigger errors). The system assumes otherwise well-formed input.
@@ -264,6 +277,14 @@ Create a `testcases.txt` file and execute with input redirection:
 ./socialnet < testcases.txt
 ```
 
+The test suite is organized into six phases:
+1. **User and Friendship Management** - Basic operations, duplicate handling, self-friendship
+2. **Content Management (AVL Tree)** - Post creation, retrieval, chronological ordering
+3. **Friend Suggestions and Graph Queries** - BFS pathfinding, mutual friend recommendations
+4. **Friend Suggestion Edge Cases** - Comprehensive N parameter validation
+5. **Invalid Inputs and Edge Cases** - Error handling across all commands
+6. **Stress Testing (Optional)** - Large network performance
+
 ### Phase 1: User and Friendship Management
 
 ```
@@ -344,7 +365,46 @@ DEGREES_OF_SEPARATION NonExistent Alice
 
 ---
 
-### Phase 4: Invalid Inputs and Edge Cases
+### Phase 4: Friend Suggestion Edge Cases
+
+```
+ADD_USER TestUser1
+ADD_USER TestUser2
+ADD_USER TestUser3
+ADD_USER TestUser4
+ADD_FRIEND TestUser1 TestUser2
+ADD_FRIEND TestUser2 TestUser3
+ADD_FRIEND TestUser3 TestUser4
+SUGGEST_FRIENDS TestUser1
+SUGGEST_FRIENDS TestUser1 -1
+SUGGEST_FRIENDS TestUser1 0
+SUGGEST_FRIENDS TestUser1 1
+SUGGEST_FRIENDS TestUser1 5
+SUGGEST_FRIENDS TestUser1 -2
+SUGGEST_FRIENDS TestUser1 -100
+SUGGEST_FRIENDS TestUser1 abc
+SUGGEST_FRIENDS TestUser1 3.14
+SUGGEST_FRIENDS TestUser1 two
+SUGGEST_FRIENDS NonExistentUser 3
+```
+
+**Expected Behavior:**
+- TestUser1 → TestUser2 → TestUser3 → TestUser4 chain
+- `SUGGEST_FRIENDS TestUser1` (no N) → Shows TestUser3 (1 mutual: TestUser2)
+- `SUGGEST_FRIENDS TestUser1 -1` → Shows all suggestions (same as above)
+- `SUGGEST_FRIENDS TestUser1 0` → Outputs nothing (silent return)
+- `SUGGEST_FRIENDS TestUser1 1` → Shows top 1 suggestion (TestUser3)
+- `SUGGEST_FRIENDS TestUser1 5` → Shows all available (only TestUser3, fewer than 5)
+- `SUGGEST_FRIENDS TestUser1 -2` → Yellow warning: N must be -1 or non-negative
+- `SUGGEST_FRIENDS TestUser1 -100` → Yellow warning: N must be -1 or non-negative
+- `SUGGEST_FRIENDS TestUser1 abc` → Red error: N must be a valid integer
+- `SUGGEST_FRIENDS TestUser1 3.14` → Red error: N must be a valid integer
+- `SUGGEST_FRIENDS TestUser1 two` → Red error: N must be a valid integer
+- `SUGGEST_FRIENDS NonExistentUser 3` → Yellow warning: User does not exist
+
+---
+
+### Phase 5: Invalid Inputs and Edge Cases
 
 ```
 ADD_USER
@@ -358,6 +418,12 @@ OUTPUT_POSTS Alice -2
 ADD_USER NoPostsUser
 OUTPUT_POSTS NoPostsUser 1
 SUGGEST_FRIENDS Alice
+SUGGEST_FRIENDS Alice abc
+SUGGEST_FRIENDS Alice -2
+SUGGEST_FRIENDS Alice -5
+SUGGEST_FRIENDS Alice 0
+SUGGEST_FRIENDS Alice 3.14
+SUGGEST_FRIENDS NonExistentUser 5
 DEGREES_OF_SEPARATION Alice
 RANDOM_COMMAND
 UnknownCommand with arguments
@@ -366,13 +432,26 @@ EXIT
 
 **Expected Behavior:**
 - All commands with missing/insufficient arguments trigger usage errors
-- Self-friendship (Alice-Alice) rejected
+- Self-friendship (Alice-Alice) rejected with yellow warning
+- **OUTPUT_POSTS edge cases:**
+  - `OUTPUT_POSTS Alice` → Red error: requires both username and N
+  - `OUTPUT_POSTS Alice two` → Red error: N must be an integer
+  - `OUTPUT_POSTS Alice -2` → Yellow warning: N must be -1 or non-negative
+  - `OUTPUT_POSTS NoPostsUser 1` → Yellow warning: User has no posts
+- **SUGGEST_FRIENDS edge cases:**
+  - `SUGGEST_FRIENDS Alice` → Shows all friend suggestions (N=-1 default)
+  - `SUGGEST_FRIENDS Alice abc` → Red error: N must be a valid integer
+  - `SUGGEST_FRIENDS Alice -2` → Yellow warning: N must be -1 or non-negative
+  - `SUGGEST_FRIENDS Alice -5` → Yellow warning: N must be -1 or non-negative
+  - `SUGGEST_FRIENDS Alice 0` → Outputs nothing (by design)
+  - `SUGGEST_FRIENDS Alice 3.14` → Red error: N must be a valid integer
+  - `SUGGEST_FRIENDS NonExistentUser 5` → Yellow warning: User does not exist
 - Unknown commands trigger red error messages
 - System exits cleanly on EXIT
 
 ---
 
-### Phase 5: Stress Testing (Optional)
+### Phase 6: Stress Testing (Optional)
 
 ```
 ADD_USER User1
@@ -421,12 +500,6 @@ The current implementation is single-threaded and not thread-safe. Concurrent mo
 - Hash map load factor affects O(1) guarantees
 - AVL tree remains balanced with O(log P) height
 - BFS performance degrades in dense graphs (E approaches V²)
-
-**Future Enhancements:**
-- Higher-resolution timestamps for post collision avoidance
-- Persistent storage (file I/O or database integration)
-- Privacy controls and friend request system
-- Content filtering and moderation tools
 
 ---
 
