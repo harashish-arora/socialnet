@@ -12,17 +12,19 @@ using namespace std;
 #define GREEN "\033[32m"
 
 struct Node {
+    int key;
     time_t timestamp;
     string content;
     Node* left;
     Node* right;
     int height;
-    Node(time_t t, const string &c) : timestamp(t), content(c), left(nullptr), right(nullptr), height(0) {}
+    Node(int k, time_t t, const string &c) : key(k), timestamp(t), content(c), left(nullptr), right(nullptr), height(0) {}
 };
 
 class AVLTree {
 private:
     Node* root;
+    int nextId;
 
     int height(Node* N) {
         if (N == nullptr) return -1;
@@ -60,15 +62,15 @@ private:
         return height(N -> left) - height(N -> right);
     }
 
-    Node* insertHelper(Node* node, time_t timestamp, const string& content) {
+    Node* insertHelper(Node* node, int key, time_t timestamp, const string& content) {
         if (node == nullptr)
-            return new Node(timestamp, content);
+            return new Node(key, timestamp, content);
 
-        if (timestamp < node -> timestamp)
-            node -> left = insertHelper(node -> left, timestamp, content);
-        else if (timestamp > node->timestamp)
-            node -> right = insertHelper(node -> right, timestamp, content);
-        else // duplicate timestamp - ignore (same second collision)
+        if (key < node->key)
+            node->left = insertHelper(node->left, key, timestamp, content);
+        else if (key > node->key)
+            node->right = insertHelper(node->right, key, timestamp, content);
+        else // duplicate key should not happen
             return node;
 
         node -> height = 1 + max(height(node -> left), height(node -> right));
@@ -76,22 +78,22 @@ private:
         int balance = getBalance(node);
 
         // Left Left Case
-        if (balance > 1 && timestamp < node -> left -> timestamp) 
+        if (balance > 1 && key < node->left->key)
             return rightRotate(node);
 
         // Right Right Case
-        if (balance < -1 && timestamp > node -> right -> timestamp) 
+        if (balance < -1 && key > node->right->key)
             return leftRotate(node);
 
         // Left Right Case
-        if (balance > 1 && timestamp > node -> left -> timestamp) {
-            node -> left = leftRotate(node -> left);
+        if (balance > 1 && key > node->left->key) {
+            node->left = leftRotate(node->left);
             return rightRotate(node);
         }
 
         // Right Left Case
-        if (balance < -1 && timestamp < node -> right -> timestamp) {
-            node -> right = rightRotate(node -> right);
+        if (balance < -1 && key < node->right->key) {
+            node->right = rightRotate(node->right);
             return leftRotate(node);
         }
 
@@ -100,33 +102,34 @@ private:
     
     Node* minValueNode(Node* node) {
         Node* current = node;
-        while (current -> left != nullptr)
-            current = current -> left;
+        while (current->left != nullptr)
+            current = current->left;
         return current;
     }
 
-    Node* deleteNodeHelper(Node* root, time_t key) {
+    Node* deleteNodeHelper(Node* root, int key) {
         if (root == nullptr) return root;
 
-        if (key < root -> timestamp)
-            root -> left = deleteNodeHelper(root -> left, key);
-        else if (key > root -> timestamp)
-            root -> right = deleteNodeHelper(root -> right, key);
+        if (key < root->key)
+            root->left = deleteNodeHelper(root->left, key);
+        else if (key > root->key)
+            root->right = deleteNodeHelper(root->right, key);
         else {
-            if ((root -> left == nullptr) || (root -> right == nullptr)) {
-                Node* temp = root -> left ? root -> left : root -> right;
+            if ((root->left == nullptr) || (root->right == nullptr)) {
+                Node* temp = root->left ? root->left : root->right;
                 if (temp == nullptr) {
                     temp = root;
                     root = nullptr;
-                } 
+                }
                 else *root = *temp;
                 delete temp;
             }
             else {
-                Node* temp = minValueNode(root -> right);
-                root -> timestamp = temp -> timestamp;
-                root -> content = temp -> content;
-                root -> right = deleteNodeHelper(root -> right, temp -> timestamp);
+                Node* temp = minValueNode(root->right);
+                root->key = temp->key;
+                root->timestamp = temp->timestamp;
+                root->content = temp->content;
+                root->right = deleteNodeHelper(root->right, temp->key);
             }
         }
 
@@ -173,12 +176,10 @@ private:
     void printRecent(Node* node, int &count, int N) {
         if (node == nullptr || (N != -1 && count >= N)) return;
 
-        // Reverse in-order: right -> root -> left (most recent first)
         printRecent(node -> right, count, N);
 
         if (N == -1 || count < N) {
             string timestamp_str = ctime(&node -> timestamp);
-            // Remove trailing newline from ctime
             if (!timestamp_str.empty() && timestamp_str.back() == '\n')
                 timestamp_str.pop_back();
             cout << GREEN << timestamp_str << ": " << node -> content << RESET << endl;
@@ -189,22 +190,22 @@ private:
     }
 
 public:
-    AVLTree() : root(nullptr) {}
+    AVLTree() : root(nullptr), nextId(0) {}
 
     ~AVLTree() { deleteTree(root); }
 
-    // Return true if the tree contains at least one post
     bool hasPosts() const {
         return root != nullptr; 
     }
 
     void insert(const string& content) {
         time_t now = time(nullptr);
-        root = insertHelper(root, now, content);
+        int key = nextId++;
+        root = insertHelper(root, key, now, content);
     }
 
-    void deleteNode(time_t timestamp) {
-        root = deleteNodeHelper(root, timestamp);
+    void deleteNode(int key) {
+        root = deleteNodeHelper(root, key);
     }
 
     void outputPosts(int N) {
