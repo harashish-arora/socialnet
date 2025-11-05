@@ -105,6 +105,7 @@ ADD_FRIEND Alice Bob
 | Command | Description |
 |---------|-------------|
 | `EXIT` | Terminates the simulator. |
+| `HELP` | Displays the list of valid commands. |
 
 ---
 

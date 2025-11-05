@@ -31,7 +31,7 @@ void printBanner() {
 ╚═══════════════════════════════════════════════════════════════╝
 )" << RESET << endl;
     cout << GREEN << "Welcome to SocialNet Simulator!" << RESET << endl;
-    cout << YELLOW << "Type your commands below (or 'EXIT' to quit)" << RESET << endl;
+    cout << YELLOW << "Type your commands below (or 'EXIT' to quit or 'HELP' to see the list of valid commands)" << RESET << endl;
     cout << string(63, '=') << endl << endl;
 }
 
@@ -168,6 +168,22 @@ int main() {
                 cerr << RED << "Error: N must be an integer (use -1 for all).\n" << RESET;
                 continue;
             }
+        }
+
+        else if (command == "HELP") {
+            cout << CYAN << BOLD << "Available commands and syntax:" << RESET << "\n";
+            cout << GREEN << "  ADD_USER <username>" << RESET << "          - Create a new user.\n";
+            cout << GREEN << "  ADD_FRIEND <user1> <user2>" << RESET << " - Make two users friends.\n";
+            cout << GREEN << "  LIST_FRIENDS <username>" << RESET << "     - List friends of a user.\n";
+            cout << GREEN << "  SUGGEST_FRIENDS <username> <N>" << RESET << " - Suggest up to N friends (omit N to show all).\n";
+            cout << GREEN << "  DEGREES_OF_SEPARATION <user1> <user2>" << RESET << " - Shortest path length.\n";
+            cout << GREEN << "  ADD_POST <username> <post content>" << RESET << " - Add a post (quotes optional).\n";
+            cout << GREEN << "  OUTPUT_POSTS <username> <N>" << RESET << " - Output last N posts (-1 for all).\n";
+            cout << GREEN << "  HELP" << RESET << "                      - Show this help message.\n";
+            cout << GREEN << "  EXIT | QUIT" << RESET << "               - Exit the simulator.\n";
+            cout << YELLOW << "\nExamples:\n" << RESET;
+            cout << CYAN << "  ADD_USER alice\n  ADD_USER bob\n  ADD_FRIEND alice bob\n  SUGGEST_FRIENDS alice 3\n  SUGGEST_FRIENDS alice\n  ADD_POST alice \"Hello world\"\n" << RESET;
+            continue;
         }
 
         else {
