@@ -522,8 +522,8 @@ The current implementation is single-threaded and not thread-safe. Concurrent mo
 This repository has been reviewed and refined with the assistance of AI tools to improve documentation, input validation, and minor code behaviors. Edits have been compiled and smoke-tested locally.
 
 **The use of AI has been limited to the following, and is thus a complete declaration:**
-- Inserting the keywords "const" and "&" whenever a string is not modified within a function and requires itself to be passed by reference.
-- Colour-coding the outputs for interpretability on the command line.
+- Inserting the keywords "const" and "&" whenever a string is not modified within a function and requires itself to be passed by reference (for the purposes of efficiency).
+- Colour-coding the outputs (for syntax error, invalid argument errors, and successful parsing) for interpretability on the command line.
 - Generating the bash script, including randomised cowsay commands.
 - Generating the main function for input parsing, which is irrelvant to the logic required for this assignment.
 - Generation of ASCII art in the main function, generation of output messages, and exception catching.
