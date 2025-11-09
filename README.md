@@ -519,7 +519,7 @@ The current implementation is single-threaded and not thread-safe. Concurrent mo
 
 ## 13. Acknowledgements & Disclaimer
 
-This repository has been reviewed and refined with the assistance of AI tools to improve documentation, input validation, and minor code behaviors. Edits have been compiled and smoke-tested locally.
+This repository has been reviewed and refined with the assistance of AI tools to improve documentation, input validation, and minor code behaviors. Edits have been compiled and tested locally.
 
 **The use of AI has been limited to the following, and is thus a complete declaration:**
 - Inserting the keywords "const" and "&" whenever a string is not modified within a function and requires itself to be passed by reference (for the purposes of efficiency).
